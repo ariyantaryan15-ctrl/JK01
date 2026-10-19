@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BluMeal — Smart Gym & Meal Tracker</title>
+  <meta name="description" content="BluMeal: dashboard nutrisi, rekomendasi menu dari bahan, filter alergi/budget/waktu, catat makan, dan progres berat badan." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- ===== Masuk / Daftar ===== -->
+  <div class="auth hidden" id="auth">
+    <div class="auth-wrap">
+      <div class="auth-card">
+        <div class="segmented" id="auth-mode">
+          <button type="button" data-auth="login" class="on">Masuk</button>
+          <button type="button" data-auth="register">Daftar</button>
+        </div>
+        <h1 class="auth-title" id="auth-title">Selamat datang kembali 👋</h1>
+        <p class="muted auth-sub" id="auth-sub">Masuk dengan email &amp; kata sandi untuk melanjutkan.</p>
+        <form id="auth-form" novalidate>
+          <label class="label" for="a-email">Email</label>
+          <input class="input" id="a-email" type="email" autocomplete="email" placeholder="nama@email.com" required />
+          <label class="label" for="a-pass">Kata sandi</label>
+          <input class="input" id="a-pass" type="password" autocomplete="current-password" minlength="6" placeholder="Minimal 6 karakter" required />
+          <p class="error hidden" id="auth-error" role="alert"></p>
+          <button class="btn btn-primary btn-block" id="auth-submit" type="submit">Masuk</button>
+        </form>
+        <button class="demo-link" id="demo-btn" type="button">Coba akun demo → demo@blumeal.id / demo1234</button>
+      </div>
+      <p class="auth-foot">Data profil &amp; catatan makanmu tersimpan aman di server per akun.</p>
+    </div>
+  </div>
+
+  <!-- ===== Header / navigasi desktop ===== -->
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <a href="#" class="brand" data-tab="today">
+        <span class="brand-icon">🏋️</span>
+        <span class="brand-text">Blu<b>Meal</b></span>
+      </a>
+      <nav class="nav-desktop">
+        <button class="nav-btn active" data-tab="today">🏠 Hari Ini</button>
+        <button class="nav-btn" data-tab="menu">🍽️ Menu</button>
+        <button class="nav-btn" data-tab="progress">📈 Progres</button>
+        <button class="nav-btn" data-tab="profile">👤 Profil</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container main">
+    <!-- ===== HARI INI ===== -->
+    <section id="tab-today" class="tab active">
+      <div class="page-head">
+        <h1>Halo, <span id="user-name">kamu</span> 💪</h1>
+      </div>
+
+      <div class="hero-card">
+        <div class="ring-wrap">
+          <svg viewBox="0 0 180 180" class="ring">
+            <circle cx="90" cy="90" r="76" class="ring-track" />
+            <circle cx="90" cy="90" r="76" class="ring-value" id="today-ring" />
+          </svg>
+          <div class="ring-center">
+            <small id="remaining-label">SISA KALORI</small>
+            <strong id="remaining-kcal">0</strong>
+            <small>kkal</small>
+          </div>
+        </div>
+        <div class="hero-info">
+          <div class="hero-stats">
+            <div class="hero-stat"><small id="target-label">Target</small><strong id="target-kcal">0</strong></div>
+            <div class="hero-stat"><small>Sudah dimakan</small><strong id="eaten-kcal">0</strong></div>
+          </div>
+          <div class="macro-grid" id="macro-grid"></div>
+          <p class="hero-note" id="bmi-line"></p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2>Catatan makan hari ini</h2>
+          <button class="btn btn-soft-orange hidden" id="relog-btn">🔁 Ulangi menu kemarin</button>
+        </div>
+        <ul class="log-list" id="log-list"></ul>
+      </div>
+
+      <div class="card">
+        <h2>💡 Saran untuk kamu</h2>
+        <ul class="advice-list" id="advice-list"></ul>
+      </div>
+    </section>
+
+    <!-- ===== MENU ===== -->
+    <section id="tab-menu" class="tab">
+      <div class="menu-layout">
+        <div class="menu-left">
+          <h1>Mau masak apa?</h1>
+          <div class="card">
+            <div class="card-head">
+              <h2>Bahan di dapur kamu</h2>
+              <span class="pill-count" id="bahan-count">0 dipilih</span>
+            </div>
+            <input type="search" id="bahan-search" class="input" placeholder="🔍 Cari bahan…" />
+            <div id="bahan-groups"></div>
+          </div>
+
+          <button class="filter-toggle" id="filter-toggle">⚙️ Alergi, budget & waktu <span id="filter-count">0 aktif</span></button>
+          <div class="card hidden" id="filter-panel">
+            <p class="label label-red">🚫 Hindari alergen</p>
+            <div class="chips" id="alergi-chips"></div>
+            <p class="label">💰 Budget per sajian</p>
+            <div class="chips" id="budget-chips"></div>
+            <p class="label">⏱️ Waktu memasak</p>
+            <div class="chips" id="time-chips"></div>
+          </div>
+        </div>
+
+        <div class="menu-right">
+          <div class="card-head">
+            <div>
+              <h2 class="h2-big">Rekomendasi menu</h2>
+              <p class="muted" id="rec-summary"></p>
+            </div>
+            <button class="btn btn-outline" id="fav-filter">🤍 Favorit</button>
+          </div>
+          <input type="search" id="menu-search" class="input menu-search" placeholder="🔍 Cari menu…" aria-label="Cari menu" />
+          <div class="target-banner hidden" id="target-banner" role="status">🎯 Target sudah tercapai</div>
+          <div id="rec-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== PROGRES ===== -->
+    <section id="tab-progress" class="tab">
+      <h1>Progres</h1>
+      <div class="progress-grid">
+        <div class="card">
+          <h2>⚖️ Berat badan mingguan</h2>
+          <p class="big-number"><span id="weight-current">0</span> <small>kg</small> <span id="weight-change" class="change"></span></p>
+          <form id="weight-form" class="row">
+            <input type="text" inputmode="decimal" id="weight-input" class="input" placeholder="Berat hari ini (kg)" />
+            <button class="btn btn-primary" type="submit">Catat</button>
+          </form>
+          <p id="weight-hint" class="hint hidden"></p>
+          <div id="weight-chart" class="chart"></div>
+          <div id="weight-advice" class="advice-box"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h2>Riwayat kalori · 5 minggu</h2>
+            <div class="row">
+              <span class="badge-orange" id="streak">🔥 0 hari streak</span>
+              <span class="badge-green" id="hit-count">0/0 tercapai</span>
+            </div>
+          </div>
+          <div class="cal-head"><span>Sen</span><span>Sel</span><span>Rab</span><span>Kam</span><span>Jum</span><span>Sab</span><span>Min</span></div>
+          <div class="calendar" id="calendar"></div>
+          <div class="legend">
+            <span><i class="lg tercapai"></i>Target tercapai (±10%)</span>
+            <span><i class="lg kurang"></i>Kurang</span>
+            <span><i class="lg lebih"></i>Lebih</span>
+            <span><i class="lg kosong"></i>Tidak dicatat</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== PROFIL ===== -->
+    <section id="tab-profile" class="tab">
+      <div class="card profile-card">
+        <h1 id="profile-title">Profil tubuh</h1>
+        <p class="muted" id="profile-sub">Untuk BMI, kebutuhan kalori (Mifflin-St Jeor), dan makro. Data tersimpan di akunmu.</p>
+        <p class="onboard-note hidden" id="onboard-note">👋 Selamat datang! Isi semua data di bawah dulu (wajib) sebelum bisa membuka menu lainnya.</p>
+        <form id="profile-form">
+          <label class="label">Nama panggilan</label>
+          <input class="input" id="p-nama" maxlength="30" placeholder="Nama kamu" />
+          <label class="label">Tujuan</label>
+          <div class="segmented" id="p-tujuan">
+            <button type="button" data-v="bulking">Bulking</button>
+            <button type="button" data-v="cutting">Cutting</button>
+            <button type="button" data-v="maintenance">Maintenance</button>
+          </div>
+          <div class="grid3">
+            <div><label class="label">Tinggi (cm)</label><input class="input" id="p-tinggi" type="number" placeholder="cm" /></div>
+            <div><label class="label">Berat (kg)</label><input class="input" id="p-berat" type="number" step="0.1" placeholder="kg" /></div>
+            <div><label class="label">Usia</label><input class="input" id="p-usia" type="number" placeholder="tahun" /></div>
+          </div>
+          <p id="profile-hint" class="hint hidden"></p>
+          <div class="grid2">
+            <div>
+              <label class="label">Jenis kelamin</label>
+              <select class="input" id="p-gender"><option value="pria">Pria</option><option value="wanita">Wanita</option></select>
+            </div>
+            <div>
+              <label class="label">Aktivitas</label>
+              <select class="input" id="p-aktivitas">
+                <option value="sedentari">Sedentari (jarang gerak)</option>
+                <option value="ringan">Ringan (1-3x/minggu)</option>
+                <option value="sedang">Sedang (3-5x/minggu)</option>
+                <option value="berat">Berat (6-7x/minggu)</option>
+                <option value="sangat_berat">Sangat berat (atlet)</option>
+              </select>
+            </div>
+          </div>
+          <div class="bmi-preview">BMI langsung <strong id="p-bmi">—</strong></div>
+          <p class="error hidden" id="profile-error"></p>
+          <button class="btn btn-primary btn-block" id="profile-submit" type="submit">Simpan & hitung ulang target</button>
+        </form>
+        <button class="btn btn-ghost-red btn-block" id="reset-btn">Hapus semua data</button>
+        <div class="account-box">
+          <span class="muted">Masuk sebagai <strong id="account-email"></strong></span>
+          <button class="btn btn-outline" id="logout-btn" type="button">Keluar</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===== Navigasi mobile ===== -->
+  <nav class="nav-mobile">
+    <button class="nav-m active" data-tab="today"><span>🏠</span>Hari Ini</button>
+    <button class="nav-m" data-tab="menu"><span>🍽️</span>Menu</button>
+    <button class="nav-m" data-tab="progress"><span>📈</span>Progres</button>
+    <button class="nav-m" data-tab="profile"><span>👤</span>Profil</button>
+  </nav>
+
+  <!-- ===== Detail resep (sheet) ===== -->
+  <div class="overlay hidden" id="overlay"></div>
+  <aside class="sheet" id="sheet" aria-hidden="true"></aside>
+
+  <div class="toast hidden" id="toast"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>

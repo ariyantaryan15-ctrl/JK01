@@ -1,0 +1,8 @@
+{
+  "name": "blumeal",
+  "version": "2.0.0",
+  "private": true,
+  "description": "BluMeal — Smart Gym & Meal Tracker (login email + penyimpanan server)",
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=18" }
+}
